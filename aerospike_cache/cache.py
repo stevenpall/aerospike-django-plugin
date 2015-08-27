@@ -1,6 +1,6 @@
 "Aerospike cache module"
 from __future__ import print_function
-import time, sys
+import time, sys, logging
 
 import types # to check for function type for picking
 
@@ -28,6 +28,8 @@ except ImportError:
     from django.utils.encoding import smart_unicode, smart_str
     smart_text = smart_unicode
     smart_bytes = smart_str
+
+logging.basicConfig(filename='/var/log/django-aerospike.log', level=logging.DEBUG)
 
 
 class AerospikeCache(BaseCache):
@@ -78,7 +80,7 @@ class AerospikeCache(BaseCache):
         #check for username/password for enterprise versions
         else:
             self._client.connect(self.username, self.password)
-        print("Aerospike client connection object for %s initialized" % self.server, file=sys.stdout)
+        logging.debug("Aerospike client connection object for %s initialized" % self.server, file=sys.stdout)
 
 
     #for pickling, not needed as pickling is handled by the client library
@@ -234,7 +236,7 @@ class AerospikeCache(BaseCache):
         #compose the value for the cache key
         record = {self.aero_bin: value}
         ret = self._client.put(aero_key, record, meta, self.policy)
-        print("Add: %s, %s, %s, %s" % (aero_key, record, meta, self.policy), file=sys.stdout)
+        logging.debug("Add: %s, %s, %s, %s" % (aero_key, record, meta, self.policy))
 
         if ret == 0:
             return True
@@ -249,7 +251,7 @@ class AerospikeCache(BaseCache):
 
         try:
             (key, metadata, record) = self._client.get(aero_key, self.policy)
-            print("Get: %s, %s, %s" % (key, metadata, record), file=sys.stdout)
+            logging.debug("Get: %s, %s, %s" % (key, metadata, record))
             if record is None:
                 return default
             value = record[self.aero_bin]
@@ -264,14 +266,14 @@ class AerospikeCache(BaseCache):
         """
         Set a value in the cache. It is similar to add
         """
-        print("Set: %s, %s, %s, %s" % (key, value, timeout, version), file=sys.stdout)
+        logging.debug("Set: %s, %s, %s, %s" % (key, value, timeout, version))
         return self.add(key, value, timeout, version)
 
     def delete(self, key, version=None):
         """
         Delete a key from the cache, failing silently.
         """
-        print("Delete: %s, %s" % (key, version), file=sys.stdout)
+        logging.debug("Delete: %s, %s" % (key, version))
         self._client.remove(self.make_key(key, version=version))
 
     def get_many(self, keys, version=None):
@@ -349,7 +351,7 @@ class AerospikeCache(BaseCache):
         """
         closes the database connection
         """
-        print("Closing connection to %s" % self.server, file=sys.stdout)
+        logging.debug("Closing connection to %s" % self.server)
         self._client.close()
 
     def unpickle(self, value):
