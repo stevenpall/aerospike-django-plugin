@@ -78,6 +78,7 @@ class AerospikeCache(BaseCache):
         #check for username/password for enterprise versions
         else:
             self._client.connect(self.username, self.password)
+        print("Aerospike client connection object for %s initialized" % self.server, file=sys.stdout)
 
 
     #for pickling, not needed as pickling is handled by the client library
@@ -233,6 +234,7 @@ class AerospikeCache(BaseCache):
         #compose the value for the cache key
         record = {self.aero_bin: value}
         ret = self._client.put(aero_key, record, meta, self.policy)
+        print("Add: %s, %s, %s, %s" % (aero_key, record, meta, self.policy), file=sys.stdout)
 
         if ret == 0:
             return True
@@ -246,7 +248,8 @@ class AerospikeCache(BaseCache):
         aero_key = self.make_key(key, version=version)
 
         try:
-            (key, metadata, record) = self._client.get(aero_key,self.policy)
+            (key, metadata, record) = self._client.get(aero_key, self.policy)
+            print("Get: %s, %s, %s" % (key, metadata, record), file=sys.stdout)
             if record is None:
                 return default
             value = record[self.aero_bin]
@@ -261,12 +264,14 @@ class AerospikeCache(BaseCache):
         """
         Set a value in the cache. It is similar to add
         """
+        print("Set: %s, %s, %s, %s" % (key, value, timeout, version), file=sys.stdout)
         return self.add(key, value, timeout, version)
 
     def delete(self, key, version=None):
         """
         Delete a key from the cache, failing silently.
         """
+        print("Delete: %s, %s" % (key, version), file=sys.stdout)
         self._client.remove(self.make_key(key, version=version))
 
     def get_many(self, keys, version=None):
@@ -344,8 +349,9 @@ class AerospikeCache(BaseCache):
         """
         closes the database connection
         """
+        print("Closing connection to %s" % self.server, file=sys.stdout)
         self._client.close()
-        
+
     def unpickle(self, value):
         """
         Unpickles the given value, it is unpickled by client lib and therefore
