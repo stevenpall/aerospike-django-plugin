@@ -63,9 +63,17 @@ class AerospikeCache(BaseCache):
             host, port = None, None
 
         config = {
-            "hosts": [(host, port)],
-            "policies": {"timeout": self.timeout},
-            "shm": {}
+            "hosts": [
+                  ( host, port )
+              ],
+            "policies": {
+            #aerospike timeout has no equivalent in django cache
+            #"timeout": self.timeout # milliseconds
+            },
+            "shm": {
+                "max_nodes": 16,
+                "max_namespaces": 8
+            }
         }
 
         self._client = aerospike.client(config)
