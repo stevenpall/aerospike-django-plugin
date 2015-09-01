@@ -80,7 +80,7 @@ class AerospikeCache(BaseCache):
         #check for username/password for enterprise versions
         else:
             self._client.connect(self.username, self.password)
-        logging.debug("Aerospike client connection object for %s initialized" % self.server, file=sys.stdout)
+        logging.debug("Aerospike client connection object for %s initialized" % self.server)
 
 
     #for pickling, not needed as pickling is handled by the client library
