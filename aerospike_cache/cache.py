@@ -61,11 +61,9 @@ class AerospikeCache(BaseCache):
 
         config = {
             "hosts": [
-                  ( host, port )
-              ],
+                (host, port)
+            ],
             "policies": {
-            #aerospike timeout has no equivalent in django cache
-            #"timeout": self.timeout # milliseconds
             },
             "shm": {
                 "max_nodes": 16,
@@ -82,7 +80,6 @@ class AerospikeCache(BaseCache):
         else:
             self._client.connect(self.username, self.password)
         logging.debug("Aerospike client connection object for %s initialized" % self.server)
-
 
     #for pickling, not needed as pickling is handled by the client library
     def __getstate__(self):
@@ -218,11 +215,15 @@ class AerospikeCache(BaseCache):
         # but for function/class/tuple it has to manually convert to blob
         #http://stackoverflow.com/a/624948/119031 to check for function type
         #TODO - use bytearray(function/class/tuple) to serialize unsupported data types
-        if not isinstance(value, (int, str, list, dict, defaultdict)):
+        if not isinstance(value, (int, str, list, dict)):
             pickle_value = pickle.dumps(value)
             #now store it as an array
             #value = array('B', pickle_value).tostring()
             #aerospike python library does not recognize array so use bytearray
+            value = bytearray(pickle_value)
+
+        if isinstance(value, (defaultdict)):
+            pickle_value = pickle.dumps(value)
             value = bytearray(pickle_value)
 
         meta = {}
