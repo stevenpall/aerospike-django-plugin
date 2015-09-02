@@ -1,8 +1,8 @@
 "Aerospike cache module"
 from __future__ import print_function
-import time, sys, logging
-
-import types # to check for function type for picking
+import sys
+import logging
+from collections import defaultdict
 
 #pickling is taken care by the client library for all except function/class/tuple
 try:
@@ -15,9 +15,6 @@ try:
 except ImportError:
     raise InvalidCacheBackendError(
         "Aerospike cache backend requires the 'aerospike' library")
-
-#from array import array #for unsupported data types
-import inspect
 
 from django.core.cache.backends.base import BaseCache, DEFAULT_TIMEOUT
 try:
@@ -175,7 +172,7 @@ class AerospikeCache(BaseCache):
         """
         policy = {
             'key': aerospike.POLICY_KEY_DIGEST
-        } # store the key along with the record
+        }  # store the key along with the record
         return policy
 
     @property
@@ -221,7 +218,7 @@ class AerospikeCache(BaseCache):
         # but for function/class/tuple it has to manually convert to blob
         #http://stackoverflow.com/a/624948/119031 to check for function type
         #TODO - use bytearray(function/class/tuple) to serialize unsupported data types
-        if not isinstance(value, (int, str, list, dict)):
+        if not isinstance(value, (int, str, list, dict, defaultdict)):
             pickle_value = pickle.dumps(value)
             #now store it as an array
             #value = array('B', pickle_value).tostring()
@@ -253,7 +250,7 @@ class AerospikeCache(BaseCache):
         aero_key = self.make_key(key, version=version)
 
         try:
-            logging.debug("Get: %s, %s, %s" % (key, metadata, record))
+            logging.debug("Get: %s, %s, %s" % (aero_key, self.policy))
             (key, metadata, record) = self._client.get(aero_key, self.policy)
             if record is None:
                 return default
@@ -291,7 +288,7 @@ class AerospikeCache(BaseCache):
             return {}
         ret_data = {}
         # get list of keys using python map
-        new_keys = list(map(lambda key: self.make_key(key,version), keys))
+        new_keys = list(map(lambda key: self.make_key(key, version), keys))
 
         #get dict of key,meta,rec
         records = self._client.get_many(new_keys)
@@ -316,7 +313,7 @@ class AerospikeCache(BaseCache):
         except Exception, eargs:
             print("error: {0}".format(eargs), file=sys.stderr)
 
-        if meta == None:
+        if meta is None:
             return False
 
         return True
