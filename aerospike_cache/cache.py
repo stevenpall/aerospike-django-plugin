@@ -216,14 +216,11 @@ class AerospikeCache(BaseCache):
         #http://stackoverflow.com/a/624948/119031 to check for function type
         #TODO - use bytearray(function/class/tuple) to serialize unsupported data types
         if not isinstance(value, (int, str, list, dict)):
+            logging.debug("Value is not int, str, list, dict")
             pickle_value = pickle.dumps(value)
             #now store it as an array
             #value = array('B', pickle_value).tostring()
             #aerospike python library does not recognize array so use bytearray
-            value = bytearray(pickle_value)
-
-        if isinstance(value, (defaultdict)):
-            pickle_value = pickle.dumps(value)
             value = bytearray(pickle_value)
 
         meta = {}
