@@ -221,26 +221,25 @@ class AerospikeCache(BaseCache):
         # but for function/class/tuple it has to manually convert to blob
         #http://stackoverflow.com/a/624948/119031 to check for function type
         #TODO - use bytearray(function/class/tuple) to serialize unsupported data types
-        value_type = type(value)
         if not isinstance(value, (int, str, list, dict)):
             pickle_value = pickle.dumps(value)
             #now store it as an array
             #value = array('B', pickle_value).tostring()
             #aerospike python library does not recognize array so use bytearray
-            value = bytearray( pickle_value)
-
+            value = bytearray(pickle_value)
 
         meta = {}
         #check if its int or long else use default
-        if isinstance(timeout, (int , long)):
+        if isinstance(timeout, (int, long)):
             meta['ttl'] = timeout
         else:
             meta['ttl'] = self.timeout
 
         #compose the value for the cache key
+        logging.debug(type(value))
         record = {self.aero_bin: value}
         ret = self._client.put(aero_key, record, meta, self.policy)
-        logging.debug("Add: %s, %s, %s, %s" % (aero_key, record, meta, self.policy))
+        logging.debug("Put: %s, %s, %s, %s" % (aero_key, record, meta, self.policy))
 
         if ret == 0:
             return True
