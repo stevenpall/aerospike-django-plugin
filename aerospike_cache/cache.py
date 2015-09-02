@@ -238,8 +238,8 @@ class AerospikeCache(BaseCache):
         #compose the value for the cache key
         logging.debug(type(value))
         record = {self.aero_bin: value}
+        logging.debug("Add: %s, %s, %s, %s" % (aero_key, record, meta, self.policy))
         ret = self._client.put(aero_key, record, meta, self.policy)
-        logging.debug("Put: %s, %s, %s, %s" % (aero_key, record, meta, self.policy))
 
         if ret == 0:
             return True
@@ -253,8 +253,8 @@ class AerospikeCache(BaseCache):
         aero_key = self.make_key(key, version=version)
 
         try:
-            (key, metadata, record) = self._client.get(aero_key, self.policy)
             logging.debug("Get: %s, %s, %s" % (key, metadata, record))
+            (key, metadata, record) = self._client.get(aero_key, self.policy)
             if record is None:
                 return default
             value = record[self.aero_bin]
