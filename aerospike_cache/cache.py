@@ -64,10 +64,11 @@ class AerospikeCache(BaseCache):
                 (host, port)
             ],
             "policies": {
-            },
-            "shm": {
-                "max_nodes": 16,
-                "max_namespaces": 8
+                "shm": {
+                    "max_nodes": 16,
+                    "max_namespaces": 8
+                },
+                'timeout': 10000
             }
         }
 
@@ -349,9 +350,9 @@ class AerospikeCache(BaseCache):
         """
         closes the database connection
         """
-        # logging.debug("Closing connection to %s" % self.server)
-        # self._client.close()
-        pass
+        logging.debug("Closing connection to %s" % self.server)
+        self._client.close()
+        # pass
 
     def unpickle(self, value):
         """
